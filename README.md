@@ -7,7 +7,7 @@ Deciphering protein folding and unfolding pathways under tension is essential fo
 Classify SMFS data into one of three classes - 1) **No molecule**: where no molecule is present between the tip and substrate, 2) **Single molecule**: when only a single molecule or a section of a single molecule is present, or 3) **Multiple molecules**: where multiple molecules or sections of multiple molecules are present between the tip and substrate. 
 
 ## ❖ Methods:
-Our work is the first to apply state-of-the-art machine learning models (such as ResNet, FCN, InceptionTime, and LSTMFCN) to SMFS data. Additionally, we introduced a novel dual-branch ML architecture, Polymer Elastic Model Neural Networks (PemNN), incorporating protein unfolding physics, a unique approach enabled by SMFS expertise that outperforms baseline models. Furthermore, we provide a Monte Carlo simulation engine to generate force spectroscopy datasets alongside extensive experimental data from atomic force microscopy on a variety of proteins.
+Our work is the first to apply state-of-the-art machine learning models (such as ResNet, FCN, InceptionTime, and LSTMFCN) to SMFS data. Additionally, we introduced a novel dual-branch ML architecture, **Polymer Elastic Model Neural Networks (PemNN)**, incorporating protein unfolding physics, a unique approach enabled by SMFS expertise that outperforms baseline models. Furthermore, we provide a Monte Carlo simulation engine to generate force spectroscopy datasets alongside extensive experimental data from atomic force microscopy on a variety of proteins.
 ![PemNN schematic](images/PemNN_Model_schematic.png)
 
 ## ❖ Data
@@ -25,7 +25,7 @@ For our four molecules: Titin I27O, insect UtrN-R3, bact UtrN-R3, and DysN-R3:
 ## ❖ Requirements
 All required Python packages are listed in [pip-requirements.text](pip-requirements.txt). 
 - [tensorflow-metal](https://developer.apple.com/metal/tensorflow-plugin/) uses Mac GPUs. 
-- [tslearn](https://github.com/tslearn-team/tslearn/) is a Python package for the analysis of time series.
+- [tslearn](https://github.com/tslearn-team/tslearn/) and [sktime](https://github.com/sktime/sktime) are Python packages for the analysis of time series.
 
   
 ## ❖ Codes
@@ -43,8 +43,7 @@ Training and evaluation of deep learning models are implemented in [AFM_ML.py](C
 
 ## ❖ Results
 
-Deep learning model automates the isolation of single-molecule measurements, significantly enhancing data processing efficiency. The time re-
-quired to extract meaningful statistics from single-molecule SMFS trials is reduced from a day to under an hour. 
+All deep learning models automates the isolation of single-molecule measurements, significantly enhancing data processing efficiency. With our deep learning approach, the time required to extract meaningful statistics from single-molecule SMFS trials is reduced **from a day to under an hour**. 
 
 Our model (PemNN) achieves state-of-the-art performance, outperforming five baseline methods on both simulated and experimental datasets. It attains nearly 100\% accuracy across all simulated datasets and an average accuracy of $79.6 \pm 5.2$\% on experimental datasets, using only ~30 training samples, surpassing baseline methods by 11.4\%. Notably, even without expert annotations on experimental data, the model achieves an average accuracy of $72.0 \pm 5.9$\% when pre-trained on corresponding simulated datasets. 
 
