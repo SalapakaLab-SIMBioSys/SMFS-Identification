@@ -1,0 +1,11 @@
+scikit-learn
+sktime
+matplotlib
+pandas
+numpy
+scipy
+tensorflow
+tensorflow-metal (using Mac GPUs)
+tslearn
+
+

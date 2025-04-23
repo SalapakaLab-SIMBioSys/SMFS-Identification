@@ -1,0 +1,70 @@
+# A Physics-Augmented Deep Learning Framework for Classifying Single-Molecule Force Spectroscopy Data
+Deciphering protein folding and unfolding pathways under tension is essential for deepening our understanding of fundamental biological mechanisms. Such insights hold the promise of developing treatments for a range of debilitating and fatal conditions, including muscular disorders like Duchenne Muscular Dystrophy [^1][^2] and neurodegenerative diseases such as Parkinson's disease [^3]. Single molecule force spectroscopy (SMFS) is a powerful technique for investigating the forces involved in protein domain folding and unfolding. However, SMFS trials often involve multiple protein molecules, necessitating filtering to isolate measurements from single-molecule trials. Currently, manual visual inspection is the primary method for classifying single-molecule data, a process that is both time-consuming and requires significant expertise[^4][^5].
+![PemNN schematic](images/schematic_afm_force_time_series_data.png)
+
+In this work, we introduce a novel deep learning model employing a dual-branch fusion strategy: one branch integrates the physics of protein molecules, and the other operates independently of physical constraints. This model automates the isolation of single-molecule measurements, significantly enhancing data processing efficiency. To train and validate our approach,  we developed a physics-based Monte Carlo engine to simulate force spectroscopy datasets, including trials involving single molecules, multiple molecules, and no molecules. Our model achieves state-of-the-art performance, outperforming five baseline methods on both simulated and experimental datasets. This work results in SMFS experimental datasets from four important protein molecules crucial to many biological pathways. This database of force curves and the associated methods are available here.  
+
+![PemNN schematic](images/PemNN_Model_schematic.png)
+
+## Data
+Here, we have SMFS force curves from non-specific pulling of four different protein molecules. Out of these four protein molecules, only titin I27O (Athena Enzyme Systems™) is an engineered protein molecule composed of eight repeats of the Ig 27 domain of human titin that serves as an AFM reference protein for calibrating and validating our methods. The other three protein molecules come from real natural proteins with considerable variations in their sequence and structure, dystrophin and utrophin. Dystrophin is a protein molecule expressed primarily at the muscle cell membrane, or sarcolemma, in striated muscle tissue. Deficiencies of this protein molecule lead to severe muscle wasting disorder like Duchenne muscular dystrophy (DMD), a fatal disease occurring in 1 out of 4000 male births[^6]. Utrophin is a fetal homologue of dystrophin and is under active investigation as a dystrophin replacement therapy for DMD. We include dystrophin and utrophin fragments encoding the NT through SLR 3 domains, referred to as DysN-R3 and UtrN-R3, respectively. Previous studies have demonstrated that the mechanical properties of UtrN-R3 are influenced by the expression system used, such as insect or bacterial cells [^7]. Consequently, we further categorize UtrN-R3 into insect UtrN-R3 and bact UtrN-R3 to reflect these variations. In summary, our four real protein molecules are: Titin I27O, bact UtrN-R3, insect UtrN-R3, DysN-R3.
+
+<img src="images/utrophin_dystrohphin_schematic.png" width="600">
+
+
+For our four molecules: Titin I27O, insect UtrN-R3, bact UtrN-R3, and DysN-R3:
+  - The simulation data were generated with [MCSim.py](CallScripts/MCSim.py), which are summarized as .csv files in [ML_Dataset](Data/ML_Dataset). 
+  - The experimental data: [TitinI27O Data](Data/Titin_data/Exp_ibw_data), [insect UtrN-R3 Data](Data/UTRNR3_data/Exp_ibw_data), [bact UtrN-R3 Data](Data/UtrNR3_Bact_data/Exp_ibw_data), [Dys-NR3 Data](Data/DysNR3_Bact_data/Exp_ibw_data), which are summarized as .csv files in [ML_Dataset](Data/ML_Dataset).
+    
+## Requirements
+All required Python packages are listed in [pip-requirements.text](pip-requirements.txt). 
+- [tensorflow-metal](https://developer.apple.com/metal/tensorflow-plugin/) uses Mac GPUs. 
+- [tslearn](https://github.com/tslearn-team/tslearn/) is a Python package for the analysis of time series.
+
+  
+## Codes
+- [MonteCarloSMFS.py](APIs/MonteCarloSMFS.py) contains the necessary functions to conduct Monte Carlo simulations.
+- [MCSim.py](CallScripts/MCSim.py) runs Monte Carlo simulations of protein unfolding.
+- [PemNN.py](APIs/PemNN.py) contains Polymer Elastic Model Neural Network (PemNN).
+- [AFM_ML.py](CallScripts/AFM_ML.py) trains and evaluate both baselines and PemNN.
+- [utils.py](APIs/utils.py) contains some utility functions. 
+
+
+## Train and Evaluation
+Training and evaluation of deep learning models are implemented in [AFM_ML.py](CallScripts/AFM_ML.py). At the start of the script, users can select parameters, such as the dataset and model, to utilize.
+
+
+
+## Results
+Our model outperforms five baseline methods, achieving state-of-the-art performance across both simulated and experimental datasets. It attains nearly 100\% accuracy across all simulated datasets and an average accuracy of $79.6 \pm 5.2$\% on experimental datasets, using only ~30 training samples, surpassing baseline methods by 11.4\%. Notably, even without expert annotations on experimental data, the model achieves an average accuracy of $72.0 \pm 5.9$\% when pre-trained on corresponding simulated datasets. With our deep learning approach, the time required to extract meaningful statistics from single-molecule SMFS trials is reduced from a full day to under an hour. 
+
+- Critical difference diagram of different deep learning models across the simulated and experimental testing sets of all protein molecules based on average accuracies. The most accurate model is assigned a rank of 1, with a thick horizontal line representing a group of classifiers that do not exhibit statistically significant differences in accuracy. 
+<img src="images/PemNN_vs_baselines.png" width="600">
+
+- The performance of models trained with different proportions of experimental datasets (training proportion), with error bars indicating standard deviations across all experimental datasets over five runs.
+<img src="images/performance_over_trainsize.png" width="600">
+
+## Reference
+No new data were generated for this study. The data are taken from: 
+```
+@misc{hua_two_2024,
+	title = {Two operational modes of atomic force microscopy reveal similar mechanical properties for homologous regions of dystrophin and utrophin},
+	copyright = {© 2024, Posted by Cold Spring Harbor Laboratory. This pre-print is available under a Creative Commons License (Attribution-NonCommercial-NoDerivs 4.0 International), CC BY-NC-ND 4.0, as described at http://creativecommons.org/licenses/by-nc-nd/4.0/},
+	url = {https://www.biorxiv.org/content/10.1101/2024.05.18.593686v1},
+	doi = {10.1101/2024.05.18.593686},
+	publisher = {bioRxiv},
+	author = {Hua, Cailong and Slick, Rebecca A. and Vavra, Joseph and Muretta, Joseph M. and Ervasti, James M. and Salapaka, Murti V.},
+	month = may,
+	year = {2024},
+}
+
+```
+
+[//]: # (Use APA reference style below)
+[^1]: Hoffman, E. P., Brown Jr, R. H., & Kunkel, L. M. (1987). Dystrophin: the protein product of the Duchenne muscular dystrophy locus. Cell, 51(6), 919-928.
+[^2]: Ervasti, J. M. (2007). Dystrophin, its interactions with other proteins, and implications for muscular dystrophy. Biochimica et Biophysica Acta (BBA)-Molecular Basis of Disease, 1772(2), 108-117.
+[^3]: Hervas, R., Oroz, J., Galera-Prat, A., Goni, O., Valbuena, A., Vera, A. M., ... & Carrión-Vázquez, M. (2012). Common features at the start of the neurodegeneration cascade. PLoS biology, 10(5), e1001335.
+[^4]: Bornschlögl, T., & Rief, M. (2011). Single-molecule protein unfolding and refolding using atomic force microscopy. Single Molecule Analysis: Methods and Protocols, 233-250.
+[^5]: Lyubchenko, Y. L. (Ed.). (2018). Nanoscale Imaging: Methods and Protocols. Humana Press.
+[^6]: Mendell, J. R., Shilling, C., Leslie, N. D., Flanigan, K. M., al‐Dahhak, R., Gastier‐Foster, J., ... & Weiss, R. B. (2012). Evidence‐based path to newborn screening for Duchenne muscular dystrophy. Annals of neurology, 71(3), 304-313.
+[^7]: Ramirez, M. P., Rajaganapathy, S., Hagerty, A. R., Hua, C., Baxter, G. C., Vavra, J., ... & Ervasti, J. M. (2023). Phosphorylation alters the mechanical stiffness of a model fragment of the dystrophin homologue utrophin. Journal of Biological Chemistry, 299(2).
