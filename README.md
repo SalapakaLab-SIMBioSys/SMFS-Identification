@@ -29,13 +29,13 @@ All required Python packages are listed in [pip-requirements.text](pip-requireme
 
 ## ❖ Example
 ```python
+
 # Step 1: Imports
 import numpy as np
 import pandas as pd
 import os
 import sys
 sys.path.append('../')
-
 from APIs.utils import utils
 from APIs.PemNN import PemNN
 from APIs.PemNN import Classifier_PemNN
@@ -55,11 +55,11 @@ xp_data_df =  pd.read_pickle(df_save_path + file_name + '_data' + '.csv', )
 # model save path
 output_directory = 'ML_models/' + molecule + '/saved_model_physics/'
 os.makedirs(output_directory, exist_ok=True)
-
+    
 # Step 4: Pre-process and train/test split
 [
- x_train_phy, x_test_phy, # physical branch
- x_train, x_test,  # non-physical branch
+ x_train_phy, x_test_phy, # physical branch data
+ x_train, x_test,  # non-physical branch data
  y_train, y_test, # label
  y_train_oh, y_test_oh, # one-hot encoding label
  ] = PemNN.pre_process(Fu_data_df, xp_data_df, test_size = 0.8,) 
@@ -75,7 +75,7 @@ clf = Classifier_PemNN(input_shape_pairs = x_train_phy.shape[1:],
 # Step 6: Train PemNN
 clf.fit([x_train_phy, x_train], y_train_oh,
         batch_size = 16,
-        nb_epochs = 2,
+        nb_epochs = 200,
         diagonistic = False)
 
 # Step 7: Test PemNN and print metric
