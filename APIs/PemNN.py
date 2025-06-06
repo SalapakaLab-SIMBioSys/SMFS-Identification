@@ -20,6 +20,15 @@ from datetime import datetime
 import os
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score, roc_curve
+import sklearn as sk
+from sklearn.model_selection import train_test_split
+import random
+
+import sys
+sys.path.append('../')
+
+from APIs.utils import utils
+UtObj = utils()
 # =============================================================================
 
 
@@ -32,6 +41,8 @@ class PemNN():
         self.kb = 1.38064*(10**-23)# m^2 kg s^-2 K^-1 Boltzmann constant
         self.T = 300 # T
         self.kT = self.kb*self.T
+        self.random_seed = random.randint(0, 1000000)
+        # print('The current seed = ' + str(random_seed))
     #--------------------------------------------------------------------------       
     
     
@@ -254,6 +265,83 @@ class PemNN():
     
     
     
+    #--------------------------------------------------------------------------   
+    # Preprocess data and traintest split for PemNN
+    
+    # model_method: choose from [WLC, FRC, FJC], and Lp, Lk, Lb are corresponding params
+    # thres: threshold on Lc
+    #--------------------------------------------------------------------------   
+    def pre_process(self, Fu_data_df, xp_data_df, 
+                    test_size = 0.8, 
+                    model_method = 'WLC', 
+                    Lp = 300,Lk = 300, Lb = 150, 
+                    thres = 1000,
+                    print_stats = False):
+        [Fu_train_exp, xp_train_exp, 
+         Fu_train_exp_norm, xp_train_exp_norm, 
+         y_train_exp] = UtObj.get_trace_pair_data(Fu_data_df, xp_data_df)
+                                                  
+        [Fu_train_exp, Fu_test_exp, 
+          xp_train_exp, xp_test_exp,
+          y_train_exp, y_test_exp,
+          Fu_train_exp_norm, Fu_test_exp_norm, 
+          xp_train_exp_norm, xp_test_exp_norm,] = train_test_split(Fu_train_exp, 
+                                                      xp_train_exp, 
+                                                      y_train_exp, 
+                                                      Fu_train_exp_norm,
+                                                      xp_train_exp_norm,
+                                                      test_size = test_size, 
+                                                      # random_state=random_seed,
+                                                      stratify=y_train_exp)
+            
+        enc = sk.preprocessing.OneHotEncoder(categories='auto')
+        enc.fit(np.concatenate((y_train_exp, y_test_exp), axis=0).reshape(-1, 1))
+
+        y_train_exp_oh = enc.transform(y_train_exp.reshape(-1, 1)).toarray()
+        y_test_exp_oh = enc.transform(y_test_exp.reshape(-1, 1)).toarray()
+        
+        if (print_stats):
+            print('The length of experimental training data = ' + str(len(y_train_exp)))
+            print('The length of experimental testing data = ' + str(len(y_test_exp)))
+
+
+        # choose data to use when training models
+        if (len(Fu_train_exp_norm.shape)<3):
+            x_train_nn = Fu_train_exp_norm.reshape((Fu_train_exp_norm.shape[0],Fu_train_exp_norm.shape[1], 1))
+        else:
+            x_train_nn = Fu_train_exp_norm
+        x_train_nn = x_train_nn.transpose(0,2,1) # sktime uses (n_instances (n), n_dimensions (d), series_length (m)) 
+
+        if (len(Fu_test_exp_norm.shape)<3):
+            x_test_nn = Fu_test_exp_norm.reshape((Fu_test_exp_norm.shape[0],Fu_test_exp_norm.shape[1], 1))
+        else:
+            x_test_nn = Fu_test_exp_norm
+        x_test_nn = x_test_nn.transpose(0,2,1) # sktime uses (n_instances (n), n_dimensions (d), series_length (m)) 
+
+        y_train_nn = y_train_exp
+        y_test_nn = y_test_exp
+
+
+
+        # Build physcial data (pair channel)
+        data_use = 'Lc_Fu' #'Lc_Fu_xp', 'Lc_Fu', 'Lc'
+        [x_train_nn_pairs_WLC_Lc_Fu, x_test_nn_pairs_WLC_Lc_Fu] = self.get_pem_data(xp_train_exp, Fu_train_exp, 
+                                                                                     xp_test_exp, Fu_test_exp, 
+                                                                                     model_method, data_use, thres = thres,
+                                                                                     Lp = Lp)
+        
+        if (print_stats):
+            print('The shape of training and testing data are '+ str(x_train_nn_pairs_WLC_Lc_Fu.shape) + 'and ' + str(x_test_nn_pairs_WLC_Lc_Fu.shape))
+
+        # swap dimensions
+        if (x_test_nn_pairs_WLC_Lc_Fu.shape[1]<x_test_nn_pairs_WLC_Lc_Fu.shape[2]):
+            x_train_nn_pairs_WLC_Lc_Fu = x_train_nn_pairs_WLC_Lc_Fu.transpose(0,2,1)
+            x_test_nn_pairs_WLC_Lc_Fu = x_test_nn_pairs_WLC_Lc_Fu.transpose(0,2,1)
+
+        return (x_train_nn_pairs_WLC_Lc_Fu, x_test_nn_pairs_WLC_Lc_Fu, 
+                x_train_nn, x_test_nn, y_train_nn, y_test_nn,
+                y_train_exp_oh, y_test_exp_oh)
+            
     #--------------------------------------------------------------------------        
     # Test models and log results
     #--------------------------------------------------------------------------  
@@ -765,7 +853,7 @@ class Classifier_PemNN:
                  use_lstm_pairs = True, 
                  verbose=False,
                  output_directory = None,
-                 file_name = None,
+                 file_name = 'Fused_traces_pairs', #None,
                  fused_pos = 'conv',
                  fused_method = 'average'):
         # fused_pos: 'conv', 'gap'
@@ -946,9 +1034,14 @@ class Classifier_PemNN:
         return model
 
     def fit(self, x_train, y_train,
-            batch_size, nb_epochs, fig_save_path,
-            file_name, 
-            validation_split = 0.2, diagonistic = False):
+            batch_size, nb_epochs, fig_save_path = None,
+            file_name = None, 
+            validation_split = 1/1000, diagonistic = False):
+        
+        if (file_name is None):
+            file_name = self.file_name
+        if (fig_save_path is None):
+            file_name = self.output_directory + 'plots/'
 
         mini_batch_size = int(min(x_train[0].shape[0]/10, batch_size))
 

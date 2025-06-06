@@ -789,8 +789,8 @@ class utils():
     # resample_size: number of elements in trace data 
     #--------------------------------------------------------------------------  
     def get_trace_pair_data(self, Fu_data_df, xp_data_df, 
-                            no_of_pairs, resample_size,
-                            molecule, resampling = True):
+                            no_of_pairs = 400, resample_size = 400,
+                            molecule = 'Titin', resampling = True):
         file_name_arr = np.unique(Fu_data_df['file_name'])
     
         Fu_train_exp =  np.zeros((len(file_name_arr), no_of_pairs))
