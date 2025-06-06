@@ -29,7 +29,6 @@ All required Python packages are listed in [pip-requirements.text](pip-requireme
 
 ## ❖ Example
 ```python
-
 # Step 1: Imports
 import numpy as np
 import pandas as pd
@@ -45,15 +44,13 @@ UtObj = utils()
 PemNN = PemNN()
 
 # Step 3: Read data
-# Choose moelcule from Titin', 'UtrNR3', 'UtrNR3_bact', 'DysNR3_bact', 
-molecule = 'Titin'
+molecule = 'Titin' # Choose moelcule from Titin', 'UtrNR3', 'UtrNR3_bact', 'DysNR3_bact', 
 df_save_path = '../Data/ML_Dataset/' + molecule +'/' # data save path
-file_name = 'Fu_' + molecule + '_sim'
+file_name = 'Fu_' + molecule + '_sim' # Force
 Fu_data_df =  pd.read_pickle(df_save_path + file_name + '_data' + '.csv', )
-file_name = 'xp_' + molecule + '_sim'
+file_name = 'xp_' + molecule + '_sim' # Extension
 xp_data_df =  pd.read_pickle(df_save_path + file_name + '_data' + '.csv', )
-# model save path
-output_directory = 'ML_models/' + molecule + '/saved_model_physics/'
+output_directory = 'ML_models/' + molecule + '/saved_model_physics/' # model save path
 os.makedirs(output_directory, exist_ok=True)
     
 # Step 4: Pre-process and train/test split
@@ -81,7 +78,6 @@ clf.fit([x_train_phy, x_train], y_train_oh,
 # Step 7: Test PemNN and print metric
 [acc, f1, roc_auc, _] = clf.predict([x_test_phy, x_test],y_test)
 print('The accuracy is : ' + str(round(acc,4)))
-
 ```
 
 <!--
